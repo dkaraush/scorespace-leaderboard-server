@@ -1,5 +1,6 @@
 const fs = require('fs');
 const request = require('request');
+const https = require('https');
 const {promisify} = require('util');
 const app = require('express')();
 
@@ -151,9 +152,23 @@ function recalculatePlaces(i) {
 	}
 }
 
-app.listen(port, () => {
-	console.log("Listening at :" + port);
-});
+if (config.ssl) {
+	let server = https.createServer({
+		key: fs.readFileSync(config.ssl.key),
+		cert: fs.readFileSync(config.ssl.cert)
+	}, app);
+	server.listen(port, (err) => {
+		if (err)
+			throw err;
+		console.log("Listening at :" + port + " (https)");
+	});
+} else {
+	app.listen(port, (err) => {
+		if (err)
+			throw err;
+		console.log("Listening at :" + port);
+	});
+}
 
 
 function randomString(n = 16, q = 'qwertyuiopasdfghjklzxcvbnm1234567890QWERTYUIOPASDFGHJKLZXCVBNM') {
